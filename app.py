@@ -16,11 +16,11 @@ st.set_page_config(
 )
 
 st.title("🎮 Beat the AI!")
-st.subheader("Can you beat the original AI model?")
+st.subheader("Can you predict game sales better than AI?")
 
 st.write(
-    "Predict the worldwide sales of real video games "
-    "better than the AI!"
+    "You get a real game's user rating and release year. "
+    "Try to predict how many copies it sold!"
 )
 
 # -------------------------
@@ -68,7 +68,7 @@ def load_data():
         ]
     )
 
-    # Validate ratings
+    # Keep valid ratings
     df = df[
         (df["User_Score"] >= 0) &
         (df["User_Score"] <= 10)
@@ -86,7 +86,7 @@ try:
     df = load_data()
 
     st.success(
-        f"Loaded {len(df):,} real games from Kaggle!"
+        f"Successfully loaded {len(df):,} real games!"
     )
 
 except Exception as e:
@@ -123,7 +123,7 @@ st.divider()
 
 st.header("🎯 Your Challenge")
 
-st.write("Guess the worldwide sales of this mystery game!")
+st.write("Predict the number of copies sold!")
 
 st.metric(
     "⭐ User Rating",
@@ -136,7 +136,7 @@ st.metric(
 )
 
 st.info(
-    "Sales are measured in millions of copies."
+    "Your prediction must be in copies, not millions!"
 )
 
 
@@ -145,11 +145,11 @@ st.info(
 # -------------------------
 
 guess = st.number_input(
-    "🧠 Your sales prediction",
-    min_value=0.0,
-    max_value=1000.0,
-    value=1.0,
-    step=0.5
+    "🧠 How many copies do you think the game sold?",
+    min_value=0,
+    max_value=1000000000,
+    value=1000000,
+    step=100000
 )
 
 
@@ -168,12 +168,13 @@ if st.button(
 
 
 # -------------------------
-# CALCULATE RESULTS
+# RESULTS
 # -------------------------
 
 if st.session_state.submitted:
 
-    actual = float(game["Global_Sales"])
+    # Actual sales converted from millions to copies
+    actual = float(game["Global_Sales"]) * 1_000_000
 
     # Convert user rating from 0-10 to 0-100
     rating = float(game["User_Score"]) * 10
@@ -187,10 +188,9 @@ if st.session_state.submitted:
         b
     )
 
-    # Avoid negative predictions
     ai_prediction = max(0, ai_prediction)
 
-    # Calculate errors
+    # Calculate prediction errors
     player_error = abs(
         st.session_state.guess - actual
     )
@@ -200,7 +200,7 @@ if st.session_state.submitted:
     )
 
     # -------------------------
-    # RESULTS
+    # SHOW RESULTS
     # -------------------------
 
     st.divider()
@@ -211,17 +211,17 @@ if st.session_state.submitted:
 
     st.metric(
         "🧠 Your Prediction",
-        f"{st.session_state.guess:.2f} million"
+        f"{st.session_state.guess:,.0f} copies"
     )
 
     st.metric(
         "🤖 AI Prediction",
-        f"{ai_prediction:.2f} million"
+        f"{ai_prediction:,.0f} copies"
     )
 
     st.metric(
         "🏆 Actual Sales",
-        f"{actual:.2f} million"
+        f"{actual:,.0f} copies"
     )
 
     st.divider()
@@ -232,12 +232,12 @@ if st.session_state.submitted:
 
     col1.metric(
         "Your Error",
-        f"{player_error:.2f} million"
+        f"{player_error:,.0f} copies"
     )
 
     col2.metric(
         "AI Error",
-        f"{ai_error:.2f} million"
+        f"{ai_error:,.0f} copies"
     )
 
     # -------------------------
@@ -258,12 +258,11 @@ if st.session_state.submitted:
 
         st.info("🤝 IT'S A TIE!")
 
-    # Update rounds
-    st.session_state.rounds += 1
-
     # -------------------------
     # SCOREBOARD
     # -------------------------
+
+    st.session_state.rounds += 1
 
     st.divider()
 
@@ -322,10 +321,18 @@ if st.button("🔄 Reset Score"):
 
 st.divider()
 
-st.caption("Dataset: Kaggle - Video Game Sales with Ratings")
+st.caption(
+    "Dataset: Kaggle - Video Game Sales with Ratings"
+)
 
-st.caption("Model: Original Linear Regression Weights")
+st.caption(
+    "Model: Original Linear Regression Weights"
+)
 
-st.caption("Features: User Rating + Release Year")
+st.caption(
+    "Features: User Score + Release Year"
+)
 
-st.caption("Target: Global Sales (Millions of Copies)")
+st.caption(
+    "Target: Global Sales (Number of Copies)"
+)
